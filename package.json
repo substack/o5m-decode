@@ -4,6 +4,7 @@
   },
   "dependencies": {
     "sprintf": "^0.1.5",
-    "through2": "^2.0.1"
+    "through2": "^2.0.1",
+    "xtend": "^4.0.1"
   }
 }
