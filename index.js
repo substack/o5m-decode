@@ -93,14 +93,16 @@ module.exports = function () {
       }
     } else if (data.type === 'way') {
       data.refs = []
+      var refsize = 0
       for (var i = 0; i < buf.length; i++) {
         var b = buf[i]
         if (docFields()) {
         } else if (field === 5) {
-          unsigned('refcount')
-        } else if (data.refs.length < data.refcount) {
+          unsigned('reflen')
+        } else if (refsize < data.reflen) {
           signedDelta('refs')
-        } else if (data.refcount === data.refs.length) {
+          refsize++
+        } else if (refsize === data.reflen) {
           stringPair('_kv','tags')
         }
       }
@@ -112,7 +114,7 @@ module.exports = function () {
         longitude: data.longitude * 1e-7
       }))
     } else if (data.type === 'way') {
-      delete data.refcount
+      delete data.reflen
       stream.push(data)
     } else stream.push(data)
 
@@ -191,10 +193,8 @@ module.exports = function () {
         value += (b & 0x7f) * npow
         npow *= 128
         if (b < 0x80) {
-          if (strings[value-1]) {
-            strpair[0] = strings[value-1][0]
-            strpair[1] = strings[value-1][1]
-          }
+          strpair[0] = strings[value-1][0]
+          strpair[1] = strings[value-1][1]
           finish()
         }
       } else if (strpos === 1 && b === 0x00) {
