@@ -1,5 +1,4 @@
 var through = require('through2')
-var sprintf = require('sprintf')
 var xtend = require('xtend')
 
 var BEGIN = 1, TYPE = 2, LEN = 3, DATA = 4, END = 5
@@ -70,7 +69,9 @@ module.exports = function () {
     }
     next()
   }
-  function show (n) { return sprintf('0x%02x', n) }
+  function show (n) {
+    return '0x' + (n<16?'0':'')+n.toString(16)
+  }
   function flush (stream, buf, data) {
     var field = 0, value = 0, sign = 1, npow = 1, strpos = 0
     var ix0 = 0, ix1 = 0
