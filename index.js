@@ -73,6 +73,7 @@ module.exports = function () {
   function show (n) { return sprintf('0x%02x', n) }
   function flush (stream, buf, data) {
     var field = 0, value = 0, sign = 1, npow = 1, strpos = 0
+    var ix0 = 0, ix1 = 0
     if (data.type === 'timestamp') {
       for (var i = 0; i < buf.length; i++) {
         var b = buf[i]
@@ -97,7 +98,7 @@ module.exports = function () {
         if (docFields()) {
         } else if (field === 5) {
           unsigned('refcount')
-        } else if (data.refcount > data.refs.length) {
+        } else if (data.refs.length < data.refcount) {
           signedDelta('refs')
         } else if (data.refcount === data.refs.length) {
           stringPair('_kv','tags')
@@ -182,6 +183,9 @@ module.exports = function () {
     }
     function stringPair (name0, name1) {
       if (strpos === 0 && b === 0x00) {
+        ix0 = i+1
+        strpair[0] = name0 === 'uid' ? 0 : ''
+        strpair[1] = ''
         strpos++
       } else if (strpos === 0) {
         value += (b & 0x7f) * npow
@@ -193,33 +197,21 @@ module.exports = function () {
           }
           finish()
         }
+      } else if (strpos === 1 && b === 0x00) {
+        if (name0 !== 'uid') {
+          strpair[0] = buf.slice(ix0, i).toString('utf8')
+        }
+        strpos++
+        ix1 = i+1
       } else if (strpos === 1) {
         if (name0 === 'uid') {
-          value = 0
-          npow = 1
-          for (var j = i; j < buf.length; j++) {
-            if (buf[j] === 0x00) break
-            value += (buf[j] & 0x7f) * npow
-            npow *= 128
-          }
-          strpair[0] = value
-          value = 0
-          npow = 1
-        } else {
-          for (var j = i+1; j < buf.length; j++) {
-            if (buf[j] === 0x00) break
-          }
-          strpair[0] = buf.slice(i, j).toString('utf8')
+          strpair[0] += (b & 0x7f) * npow
+          npow *= 128
         }
-        i = j
-        strpos++
-      } else if (strpos === 2) {
-        for (var j = i+1; j < buf.length; j++) {
-          if (buf[j] === 0x00) break
-        }
-        strpair[1] = buf.slice(i, j).toString('utf8')
+      } else if (strpos === 2 && b === 0x00) {
+        strpair[1] = buf.slice(ix1, i).toString('utf8')
         strings.unshift([strpair[0],strpair[1]])
-        i = j
+        strpos++
         finish()
       }
 
@@ -234,6 +226,8 @@ module.exports = function () {
         value = 0
         npow = 1
         strpos = 0
+        ix0 = 0
+        ix1 = 0
         field++
       }
     }
