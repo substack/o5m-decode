@@ -81,25 +81,27 @@ module.exports = function () {
     } else if (data.type === 'node') {
       for (var i = 0; i < buf.length; i++) {
         var b = buf[i]
-        if (field === 0) signedDelta('id')
-        else if (field === 1 && b === 0x00) {
-          field = 5
-        } else if (field === 1) {
-          unsigned('version')
-        } else if (field === 2) {
-          signedDelta('timestamp')
-        } else if (field === 3 && data.timestamp === 0) {
-          field = 5
-          i--
-        } else if (field === 3) {
-          signedDelta('changeset')
-        } else if (field === 4) {
-          stringPair('uid','user')
+        if (docFields()) {
         } else if (field === 5) {
           signedDelta('longitude')
         } else if (field === 6) {
           signedDelta('latitude')
         } else if (field > 6) {
+          stringPair('_kv','tags')
+        }
+      }
+    } else if (data.type === 'way') {
+      data.refs = []
+      for (var i = 0; i < buf.length; i++) {
+        var b = buf[i]
+        if (docFields()) {
+        } else if (field === 5) {
+          unsigned('refcount')
+        } else if (field >= 6 && data.refcount === data.refs.length) {
+          field++
+        } else if (field >= 6 && data.refcount > data.refs.length) {
+          signedDelta('refs')
+        } else {
           stringPair('_kv','tags')
         }
       }
@@ -110,7 +112,29 @@ module.exports = function () {
         latitude: data.latitude * 1e-7,
         longitude: data.longitude * 1e-7
       }))
+    } else if (data.type === 'way') {
+      delete data.refcount
+      stream.push(data)
     } else stream.push(data)
+
+    function docFields () {
+      if (field === 0) signedDelta('id')
+      else if (field === 1 && b === 0x00) {
+        field = 5
+      } else if (field === 1) {
+        unsigned('version')
+      } else if (field === 2) {
+        signedDelta('timestamp')
+      } else if (field === 3 && data.timestamp === 0) {
+        field = 5
+        i--
+      } else if (field === 3) {
+        signedDelta('changeset')
+      } else if (field === 4) {
+        stringPair('uid','user')
+      } else return false
+      return true
+    }
 
     function signedDelta (name) {
       value += (b & (npow === 1 ? 0x7e : 0x7f)) * npow
@@ -118,8 +142,20 @@ module.exports = function () {
       npow *= 128
       if (b < 0x80) {
         value = value * sign / 2
-        if (prev && prev[name] !== undefined) value += prev[name]
-        data[name] = value
+        if (Array.isArray(data[name])) {
+          if (data[name].length > 0) {
+            value += data[name][data[name].length-1]
+          } else if (prev && Array.isArray(prev[name])
+          && prev[name].length > 0) {
+            value += prev[name][prev[name].length-1]
+          }
+          data[name].push(value)
+        } else {
+          if (prev && prev[name] !== undefined) {
+            value += prev[name]
+          }
+          data[name] = value
+        }
         npow = 1
         value = 0
         sign = 1
