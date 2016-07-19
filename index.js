@@ -72,7 +72,7 @@ module.exports = function () {
   }
   function show (n) { return sprintf('0x%02x', n) }
   function flush (stream, buf, data) {
-    var field = 0, value = 0, npow = 1, strpos = 0
+    var field = 0, value = 0, sign = 1, npow = 1, strpos = 0
     if (data.type === 'timestamp') {
       for (var i = 0; i < buf.length; i++) {
         var b = buf[i]
@@ -107,20 +107,22 @@ module.exports = function () {
     prev = data
     if (data.type === 'node') {
       stream.push(xtend(data, {
-        latitude: data.latitude * 1e-7 - 90,
-        longitude: data.longitude * 1e-7 - 180
+        latitude: data.latitude * 1e-7,
+        longitude: data.longitude * 1e-7
       }))
     } else stream.push(data)
 
     function signedDelta (name) {
       value += (b & (npow === 1 ? 0x7e : 0x7f)) * npow
-      if (npow === 1 && (b & 0x1 === 1)) value *= -1
+      if (npow === 1 && (b & 0x1 === 1)) sign = -1
       npow *= 128
       if (b < 0x80) {
+        value = value * sign / 2
         if (prev && prev[name] !== undefined) value += prev[name]
-        npow = 1
         data[name] = value
+        npow = 1
         value = 0
+        sign = 1
         field++
       }
     }
