@@ -140,8 +140,8 @@ module.exports = function () {
       value += (b & 0x7f) * npow
       npow *= 128
       if (b < 0x80) {
-        npow = 1
         data[name] = value
+        npow = 1
         value = 0
         field++
       }
@@ -161,10 +161,10 @@ module.exports = function () {
         if (name0 === 'uid') {
           value = 0
           npow = 1
-          for (var j = i+1; j < buf.length; j++) {
+          for (var j = i; j < buf.length; j++) {
             if (buf[j] === 0x00) break
-            value += buf[j] * npow
-            npow *= 256
+            value += (buf[j] & 0x7f) * npow
+            npow *= 128
           }
           strpair[0] = value
           value = 0
