@@ -97,11 +97,9 @@ module.exports = function () {
         if (docFields()) {
         } else if (field === 5) {
           unsigned('refcount')
-        } else if (field >= 6 && data.refcount === data.refs.length) {
-          field++
-        } else if (field >= 6 && data.refcount > data.refs.length) {
+        } else if (data.refcount > data.refs.length) {
           signedDelta('refs')
-        } else {
+        } else if (data.refcount === data.refs.length) {
           stringPair('_kv','tags')
         }
       }
@@ -189,8 +187,10 @@ module.exports = function () {
         value += (b & 0x7f) * npow
         npow *= 128
         if (b < 0x80) {
-          strpair[0] = strings[value-1][0]
-          strpair[1] = strings[value-1][1]
+          if (strings[value-1]) {
+            strpair[0] = strings[value-1][0]
+            strpair[1] = strings[value-1][1]
+          }
           finish()
         }
       } else if (strpos === 1) {
