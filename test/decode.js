@@ -7,7 +7,7 @@ var test = require('tape')
 var gunzip = require('zlib').createGunzip
 
 test('decode', function (t) {
-  t.plan(3)
+  t.plan(4)
   var d = decode()
   var pending = 2
   var actual = [], expected = []
@@ -35,6 +35,10 @@ test('decode', function (t) {
     var erels = expected.filter(type('relation'))
     var arels = actual.filter(type('relation'))
     t.deepEqual(arels, erels, 'rels')
+
+    var estamps = expected.filter(type('timestamp'))
+    var astamps = actual.filter(type('timestamp'))
+    t.deepEqual(astamps, estamps, 'timestamps')
   }
   function type (name) {
     return function (row) { return row.type === name }
