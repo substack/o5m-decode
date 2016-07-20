@@ -36,9 +36,9 @@ test('decode', function (t) {
     var arels = actual.filter(type('relation'))
     t.deepEqual(arels, erels, 'rels')
 
-    var estamps = expected.filter(type('timestamp'))
-    var astamps = actual.filter(type('timestamp'))
-    t.deepEqual(astamps, estamps, 'timestamps')
+    var stamps = actual.filter(type('timestamp'))
+    var time = new Date(stamps[0].time*1000).toISOString()
+    t.equal(time, '2015-10-31T00:28:02.000Z')
   }
   function type (name) {
     return function (row) { return row.type === name }

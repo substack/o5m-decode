@@ -126,7 +126,21 @@ module.exports = function () {
           stringPair('_kv','tags')
         }
       }
+    } else if (data.type === 'bbox') {
+      for (var i = 0; i < buf.length; i++) {
+        var b = buf[i]
+        if (field === 0) {
+          signed('x1')
+        } else if (field === 1) {
+          signed('y1')
+        } else if (field === 2) {
+          signed('x2')
+        } else if (field === 3) {
+          signed('y2')
+        }
+      }
     }
+
     prev = data
     if (data.type === 'node') {
       stream.push(xtend(data, {
@@ -155,6 +169,12 @@ module.exports = function () {
         }),
         tags: data.tags
       })
+    } else if (data.type === 'bbox') {
+      data.x1 = data.x1 * 1e-7
+      data.y1 = data.y1 * 1e-7
+      data.x2 = data.x2 * 1e-7
+      data.y2 = data.y2 * 1e-7
+      stream.push(data)
     } else stream.push(data)
 
     function docFields () {
@@ -204,11 +224,13 @@ module.exports = function () {
     }
     function signed (name) {
       value += (b & (npow === 1 ? 0x7e : 0x7f)) * npow
+      if (npow === 1 && (b & 0x1 === 1)) sign = -1
       npow *= 128
       if (b < 0x80) {
-        data[name] = value
+        data[name] = value * sign / 2
         npow = 1
         value = 0
+        sign = 1
         field++
       }
     }
