@@ -1,6 +1,11 @@
 # o5m-decode
 
-streaming parser for o5m files
+streaming parser for [o5m][1] files
+
+This library works in node or in the browser using [browserify][2].
+
+[1]: http://wiki.openstreetmap.org/wiki/O5m
+[2]: http://browserify.org
 
 # example
 
