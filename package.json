@@ -1,6 +1,9 @@
 {
+  "name": "o5m-decode",
+  "version": "1.0.0",
+  "description": "streaming parser for o5m files",
+  "main": "index.js",
   "dependencies": {
-    "sprintf": "^0.1.5",
     "through2": "^2.0.1",
     "xtend": "^4.0.1"
   },
@@ -8,5 +11,27 @@
     "concat-stream": "^1.5.1",
     "tape": "^4.6.0",
     "to2": "^1.0.0"
-  }
+  },
+  "directories": {
+    "example": "example",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "tape test/*.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/substack/o5m-decode.git"
+  },
+  "keywords": [
+    "o5m",
+    "osm",
+    "openstreetmap"
+  ],
+  "author": "substack",
+  "license": "BSD",
+  "bugs": {
+    "url": "https://github.com/substack/o5m-decode/issues"
+  },
+  "homepage": "https://github.com/substack/o5m-decode#readme",
 }
