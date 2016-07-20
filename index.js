@@ -108,6 +108,7 @@ module.exports = function () {
       }
     } else if (data.type === 'relation') {
       data.refs = []
+      data.tags = {}
       data._types = []
       var refsize = 0
       for (var i = 0; i < buf.length; i++) {
@@ -121,6 +122,8 @@ module.exports = function () {
         } else if (refsize < data._reflen && (field - 6) % 2 === 1) {
           singleString('_types')
           refsize++
+        } else if (refsize === data._reflen) {
+          stringPair('_kv','tags')
         }
       }
     }
