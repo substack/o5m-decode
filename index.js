@@ -2,7 +2,6 @@ var through = require('through2')
 var xtend = require('xtend')
 
 var BEGIN = 1, TYPE = 2, LEN = 3, DATA = 4, END = 5
-var SIGNED = 10
 
 var types = {}
 types[0x10] = 'node'
@@ -99,12 +98,29 @@ module.exports = function () {
         var b = buf[i]
         if (docFields()) {
         } else if (field === 5) {
-          unsigned('reflen')
-        } else if (refsize < data.reflen) {
+          unsigned('_reflen')
+        } else if (refsize < data._reflen) {
           signedDelta('refs')
           refsize++
-        } else if (refsize === data.reflen) {
+        } else if (refsize === data._reflen) {
           stringPair('_kv','tags')
+        }
+      }
+    } else if (data.type === 'relation') {
+      data.refs = []
+      data._types = []
+      var refsize = 0
+      for (var i = 0; i < buf.length; i++) {
+        var b = buf[i]
+        if (docFields()) {
+        } else if (field === 5) {
+          unsigned('_reflen')
+        } else if (refsize < data._reflen && (field - 6) % 2 === 0) {
+          signedDelta('refs')
+          refsize++
+        } else if (refsize < data._reflen && (field - 6) % 2 === 1) {
+          singleString('_types')
+          refsize++
         }
       }
     }
@@ -115,8 +131,24 @@ module.exports = function () {
         longitude: data.longitude * 1e-7
       }))
     } else if (data.type === 'way') {
-      delete data.reflen
+      delete data._reflen
       stream.push(data)
+    } else if (data.type === 'relation') {
+      stream.push({
+        type: 'relation',
+        id: data.id,
+        version: data.version,
+        timestamp: data.timestamp,
+        changeset: data.changeset,
+        uid: data.uid,
+        user: data.user,
+        members: data.refs.map(function (id, j) {
+          return {
+            id: id,
+            type: data._types[j]
+          }
+        })
+      })
     } else stream.push(data)
 
     function docFields () {
@@ -182,6 +214,34 @@ module.exports = function () {
         npow = 1
         value = 0
         field++
+      }
+    }
+    function singleString (name) {
+      if (strpos === 0 && b === 0x00) {
+        ix0 = i+1
+        strpos++
+      } else if (strpos === 0) {
+        value += (b & 0x7f) * npow
+        npow *= 128
+        if (b < 0x80) {
+          if (Array.isArray(data[name])) {
+            data[name].push(strings[value-1][0])
+          } else {
+            data[name] = strings[value-1][0]
+          }
+          value = 0
+          field++
+        }
+      } else if (b === 0x00) {
+        var str = buf.slice(ix0, i).toString('utf8')
+        if (Array.isArray(data[name])) {
+          data[name].push(str)
+        } else {
+          data[name] = str
+        }
+        strings.unshift([str,''])
+        field++
+        strpos = 0
       }
     }
     function stringPair (name0, name1) {
