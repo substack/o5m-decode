@@ -146,11 +146,14 @@ module.exports = function () {
         uid: data.uid,
         user: data.user,
         members: data.refs.map(function (id, j) {
+          var t = data._types[j]
           return {
             id: id,
-            type: data._types[j]
+            type: types[0x10 + Number(t.charAt(0))],
+            role: t.slice(1)
           }
-        })
+        }),
+        tags: data.tags
       })
     } else stream.push(data)
 
