@@ -6,7 +6,7 @@ function json () {
   var i = 0
   return through.obj(write, end)
   function write (row, enc, next) {
-    next(null, (i++ === 0 ? ',' : '[') + JSON.stringify(row))
+    next(null, (i++ === 0 ? '[' : ',') + JSON.stringify(row))
   }
   function end (next) {
     this.push(']')

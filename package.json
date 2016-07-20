@@ -1,5 +1,7 @@
 {
   "devDependencies": {
+    "concat-stream": "^1.5.1",
+    "tape": "^4.6.0",
     "to2": "^1.0.0"
   },
   "dependencies": {
