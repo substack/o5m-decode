@@ -1,6 +1,6 @@
 {
   "name": "o5m-decode",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "streaming parser for o5m files",
   "main": "index.js",
   "dependencies": {
