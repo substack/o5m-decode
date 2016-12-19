@@ -282,8 +282,13 @@ module.exports = function () {
         value += (b & 0x7f) * npow
         npow *= 128
         if (b < 0x80) {
-          strpair[0] = strings[value-1][0]
-          strpair[1] = strings[value-1][1]
+          if (strings[value-1]) {
+            strpair[0] = strings[value-1][0]
+            strpair[1] = strings[value-1][1]
+          } else {
+            strings[0] = ''
+            strings[1] = ''
+          }
           finish()
         }
       } else if (strpos === 1 && b === 0x00) {
